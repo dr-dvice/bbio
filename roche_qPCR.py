@@ -196,8 +196,9 @@ def remove_outliers_fromplate(data):
             continue
         sample_data = data.xs(sample, level="Sample")
         genes = sample_data.index.get_level_values("Gene").unique()
-
         for gene in genes:
+            if gene == "missing_gene":
+                continue
             gene_data = sample_data.xs(gene, level="Gene")
             outlier = dixons_q_test_n3(gene_data.values.flatten().tolist())
             if outlier is not None:
@@ -211,6 +212,7 @@ def remove_outliers_fromplate(data):
 #return a table with the mean and standard deviation of each sample's delta CT
 def combo_deltact(data):
     samples = data.index.get_level_values('Sample').unique()
+
     genes = data.index.get_level_values("Gene").unique()
     sampleCol = []
     geneCol = []
@@ -221,11 +223,15 @@ def combo_deltact(data):
 
     for sample in samples:
         sample_data = data.xs(sample, level="Sample")
+        if sample == "empty":
+            continue
         if sample == "NEG":
             continue
         control_cts = sample_data.xs(CONTROL_GENE, level="Gene")
         for gene in genes:
             if gene == CONTROL_GENE:
+                continue
+            if gene == "missing_gene":
                 continue
             exp_cts = sample_data.xs(gene, level="Gene")
             deltaCTs = []
